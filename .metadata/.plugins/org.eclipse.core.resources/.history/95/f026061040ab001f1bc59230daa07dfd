@@ -1,0 +1,5 @@
+package net.etfbl.org.chat;
+
+public class ChatServer {
+
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.etfbl.org.userControllers.SuggestionsController">
+   <children>
+      <HBox prefHeight="80.0" prefWidth="600.0">
+         <children>
+            <TextField fx:id="tbBookTitle" prefHeight="40.0" prefWidth="300.0">
+               <HBox.margin>
+                  <Insets left="20.0" top="20.0" />
+               </HBox.margin>
+            </TextField>
+            <Button fx:id="btnAddNewOrder" mnemonicParsing="false" onAction="#addNewOrder" prefHeight="40.0" prefWidth="100.0" text="Add">
+               <HBox.margin>
+                  <Insets left="30.0" top="20.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnShowSuggestions" mnemonicParsing="false" onAction="#showSuggestions" prefHeight="40.0" prefWidth="100.0" text="Show">
+               <HBox.margin>
+                  <Insets left="20.0" top="20.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </Button>
+         </children>
+      </HBox>
+      <HBox prefHeight="310.0" prefWidth="600.0">
+         <children>
+            <ListView fx:id="lvSuggestionsList" prefHeight="310.0" prefWidth="600.0" />
+         </children>
+      </HBox>
+      <Button fx:id="btnSendOrder" mnemonicParsing="false" onAction="#sendOrder" prefHeight="48.0" prefWidth="249.0" text="Send order">
+         <font>
+            <Font size="22.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="170.0" top="5.0" />
+         </VBox.margin>
+      </Button>
+   </children>
+</VBox>

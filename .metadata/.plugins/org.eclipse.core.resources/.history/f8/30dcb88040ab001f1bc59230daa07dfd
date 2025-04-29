@@ -1,0 +1,20 @@
+package net.etfbl.org.chat;
+
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+
+public class ChatServer {
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	
+	public static void main(String[] args) {
+		
+		
+		
+		System.setProperty("javax.net.ssl.keyStore", INSTANCE.getSpecifiedProperty("keystore_path"));
+		System.setProperty("javax.net.ssl.keyStorePassword", INSTANCE.getSpecifiedProperty("keystore_password"));
+		
+	
+		
+	}
+	
+}

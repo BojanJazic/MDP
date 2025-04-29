@@ -1,0 +1,164 @@
+package net.etfbl.org.libraryControllers;
+
+import javafx.fxml.Initializable;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import javax.swing.JOptionPane;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import net.etfbl.org.libraryLogger.LibraryLogger;
+import net.etfbl.org.model.User;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+
+
+public class RequestsController implements Initializable{
+	
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	
+	
+	  @FXML
+	  private Button btnAccept;
+
+	  @FXML
+	  private Button btnDecline;
+
+	  @FXML
+	  private ListView<User> lvList;
+	  
+	  
+	  ObservableList<User> u;
+	  
+	  @Override
+	  public void initialize(URL location, ResourceBundle resources) {
+			try {
+				URL url = new URL(INSTANCE.getSpecifiedProperty("user_requests"));
+				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+				
+				conn.setDoOutput(true);
+				conn.setDoInput(true);
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Content-Type", "application/json");
+				
+				if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+					try(BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))){
+						StringBuilder builder = new StringBuilder();
+						String responseLine;
+						
+						while((responseLine = br.readLine()) != null) {
+							builder.append(responseLine.trim());
+						}
+						
+						ObjectMapper mapper = new ObjectMapper();
+						ArrayList<User> users = mapper.readValue(builder.toString(), new TypeReference<ArrayList<User>>() {});
+						u = FXCollections.observableArrayList(users);
+						lvList.setItems(u);
+					}
+				} else if(conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+					new JOptionPane().showMessageDialog(null, conn.getResponseCode());
+				}
+				conn.disconnect();
+			} catch (Exception e) {
+				LibraryLogger.LOGGER.log(Level.SEVERE, "Initialize in RequestController", e.getMessage());
+			}
+			
+	  }
+	  
+	  
+
+	  @FXML
+	  void acceptRequests(ActionEvent event) {
+		  if(lvList.getItems().size() != 0) {
+		  User user = (User)lvList.getSelectionModel().getSelectedItem();
+		  
+		  if(user != null) {
+			  try {
+				  URL url = new URL(INSTANCE.getSpecifiedProperty("accept_account"));
+				  HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+				  
+				  conn.setDoOutput(true);
+				  conn.setDoInput(true);
+				  conn.setRequestMethod("POST");
+				  conn.setRequestProperty("Content-Type", "application/json");
+				  
+				  Gson gson = new Gson();
+				  
+				  try(OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8)){
+					  out.write(gson.toJson(user));
+					  out.flush();
+					  
+					  if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+						  u.remove(user);
+						  lvList.refresh();
+						  
+						  
+					  }else {
+						  new JOptionPane().showMessageDialog(null, conn.getResponseCode());
+					  }
+				  }
+				  
+				  conn.disconnect();
+			  }catch(Exception e) {
+				  LibraryLogger.LOGGER.log(Level.SEVERE, "method: acceptRequest", e.getMessage());
+			  }
+		  }
+		  }else {
+			  btnAccept.setDisable(true);
+		  }
+	  }
+
+	  @FXML
+	  void declineRequests(ActionEvent event) {
+		  if(lvList.getItems().size() != 0) {
+			  User user = (User)lvList.getSelectionModel().getSelectedItem();
+			  
+			  try {
+				URL url = new URL(INSTANCE.getSpecifiedProperty("decline_account"));
+				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+				
+				conn.setDoOutput(true);
+				conn.setDoInput(true);
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Type", "application/json");
+				
+				Gson gson = new Gson();
+				
+				try(OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8)){
+					out.write(gson.toJson(user));
+					out.flush();
+					
+					if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+						u.remove(user);
+						lvList.refresh();
+					} else if(conn.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
+						new JOptionPane().showMessageDialog(null, conn.getResponseCode());
+					} else {
+						new JOptionPane().showMessageDialog(null, conn.getResponseCode());
+					}
+				}
+			} catch (Exception e) {
+				LibraryLogger.LOGGER.log(Level.SEVERE, "method: declineRequest", e.getMessage());
+			}
+		  }else {
+			  btnDecline.setDisable(true);
+		  }
+	  }
+	
+	  
+	 
+	  
+}

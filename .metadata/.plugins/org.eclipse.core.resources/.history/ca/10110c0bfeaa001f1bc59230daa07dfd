@@ -1,0 +1,62 @@
+package net.etfbl.org.userControllers;
+
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+
+import javax.swing.JOptionPane;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+
+
+public class SuggestionsController {
+	
+	private ObservableList<String> messages = FXCollections.observableArrayList();
+	
+	@FXML
+    private Button btnAddNewOrder;
+	
+	@FXML
+    private Button btnSendOrder;
+
+    @FXML
+    private TextField tbBookTitle;
+    
+    @FXML
+    private ListView<String> lvSuggestionsList;
+    
+
+    @FXML
+    void addNewOrder(ActionEvent event) {
+    	if(!tbBookTitle.getText().isEmpty()) {
+    		messages.add(tbBookTitle.getText().trim());
+    		tbBookTitle.clear();
+    	}else {
+    		new JOptionPane().showMessageDialog(null, "Enter a title!");
+    	}
+    }
+	
+    @FXML
+    void sendOrder(ActionEvent event) {
+    	
+    	
+    	
+    }
+
+	public ObservableList<String> getMessages() {
+		return messages;
+	}
+
+	public void setMessages(ObservableList<String> messages) {
+		this.messages = messages;
+		this.lvSuggestionsList.setItems(this.messages);
+	}
+    
+    
+    
+}

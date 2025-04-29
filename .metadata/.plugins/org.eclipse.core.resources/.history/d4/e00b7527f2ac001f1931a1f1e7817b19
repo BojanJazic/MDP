@@ -1,0 +1,15 @@
+project_dir=C:/Users/Bojan/MDP_Projekat_2024
+users_xml=C:/Users/Bojan/MDP_Projekat_2024/LibraryServer_1/users.xml
+jedis_addres=localhost
+jedis_port=6379
+log_file=C:/Users/Bojan/MDP_Projekat_2024/LibraryServer_1/log.log
+zipped_name_starts=ZipBooks_
+username=bojanbojan1003@gmail.com
+password=bojanBojan1003
+mail_from=Bojan
+mail_subject=Downloaded books
+mail.smtp.auth=true
+mail.smtp.starttls.enable=true
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=587
+downloaded_books_dir=C:/Users/Bojan/MDP_Projekat_2024.DownloadedBook

@@ -1,0 +1,15 @@
+package net.etfbl.org.multicast;
+
+import javafx.collections.ObservableList;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+
+public class MulticastClient extends Thread {
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	private static final int PORT = Integer.parseInt(INSTANCE.getSpecifiedProperty("multicast_port"));
+	private static final String HOST = INSTANCE.getSpecifiedProperty("multicast_host");
+	
+	
+	private ObservableList<String> messages;
+	
+}

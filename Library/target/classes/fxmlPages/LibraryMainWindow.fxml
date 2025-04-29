@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.etfbl.org.libraryControllers.LibraryMainWindowController">
+   <children>
+      <HBox prefHeight="100.0" prefWidth="900.0" style="-fx-border-color: #000000;">
+         <children>
+            <Label fx:id="lbUsername" alignment="CENTER" prefHeight="20.0" prefWidth="100.0" text="username">
+               <font>
+                  <Font size="14.0" />
+               </font></Label>
+            <Button fx:id="btnRefreshTable" mnemonicParsing="false" onAction="#refreshTable" prefHeight="30.0" prefWidth="100.0" text="Refresh">
+               <HBox.margin>
+                  <Insets top="40.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnSuppliers" mnemonicParsing="false" onAction="#loadSuppliers" prefHeight="30.0" prefWidth="100.0" text="Suppliers">
+               <HBox.margin>
+                  <Insets left="20.0" top="40.0" />
+               </HBox.margin>
+            </Button>
+            <TextField fx:id="tbSearchField" prefHeight="30.0" prefWidth="200.0" promptText="Search">
+               <HBox.margin>
+                  <Insets left="420.0" top="40.0" />
+               </HBox.margin>
+            </TextField>
+         </children>
+      </HBox>
+      <HBox prefHeight="400.0" prefWidth="900.0">
+         <children>
+            <TableView fx:id="tvMembersReview" prefHeight="400.0" prefWidth="1000.0">
+              <columns>
+                <TableColumn fx:id="columnID" prefWidth="41.0" text="ID" />
+                <TableColumn fx:id="columnName" prefWidth="141.0" text="Name" />
+                  <TableColumn fx:id="columnSurname" prefWidth="151.0" text="Surname" />
+                  <TableColumn fx:id="columnAddress" prefWidth="144.0" text="Address" />
+                  <TableColumn fx:id="columnEmail" prefWidth="266.0" text="Email" />
+                  <TableColumn fx:id="columnUsername" prefWidth="128.0" text="Username" />
+                  <TableColumn fx:id="columnActivated" prefWidth="68.0" text="Activated" />
+                  <TableColumn fx:id="columnBlocked" prefWidth="60.0" text="Blocked" />
+              </columns>
+            </TableView>
+         </children>
+      </HBox>
+      <HBox prefHeight="100.0" prefWidth="900.0" style="-fx-border-color: #000000;">
+         <children>
+            <Button fx:id="btnAddNewUser" mnemonicParsing="false" onAction="#addNewUser" text="Add new user">
+               <font>
+                  <Font size="16.0" />
+               </font>
+               <HBox.margin>
+                  <Insets left="45.0" top="30.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="btnUpdateUser" mnemonicParsing="false" onAction="#updateUser" prefHeight="35.0" prefWidth="120.0" text="Update user">
+               <HBox.margin>
+                  <Insets left="10.0" top="30.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnRequests" mnemonicParsing="false" onAction="#getRequests" prefHeight="35.0" prefWidth="120.0" text="Requests">
+               <HBox.margin>
+                  <Insets left="10.0" top="30.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnBooks" mnemonicParsing="false" onAction="#showBooks" prefHeight="35.0" prefWidth="120.0" text="Books">
+               <HBox.margin>
+                  <Insets left="10.0" top="30.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnBlockAccount" mnemonicParsing="false" onAction="#blockAccount" text="Block account">
+               <font>
+                  <Font size="16.0" />
+               </font>
+               <HBox.margin>
+                  <Insets left="10.0" top="30.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="btnDeleteAccount" mnemonicParsing="false" onAction="#deleteAccount" text="Delete account">
+               <HBox.margin>
+                  <Insets left="10.0" top="30.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Button>
+            <Button fx:id="btnSuggestions" mnemonicParsing="false" onAction="#showSuggestions" prefHeight="35.0" prefWidth="120.0" text="Suggestions">
+               <HBox.margin>
+                  <Insets left="10.0" top="30.0" />
+               </HBox.margin>
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Button>
+         </children>
+      </HBox>
+   </children>
+</VBox>

@@ -1,0 +1,43 @@
+package net.etfbl.org.chat;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.logging.Level;
+
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+
+import net.etfbl.org.model.Message;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.userLogger.UserLogger;
+
+public class ChatServer {
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	
+	public static void main(String[] args) {
+		System.out.println("Chat server started...");
+		try {
+		
+			System.setProperty("javax.net.ssl.keyStore", INSTANCE.getSpecifiedProperty("keystore_path"));
+			System.setProperty("javax.net.ssl.keyStorePassword", INSTANCE.getSpecifiedProperty("keystore_pass"));
+		
+			SSLServerSocketFactory socketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+			ServerSocket socket = socketFactory.createServerSocket(Integer.parseInt(INSTANCE.getSpecifiedProperty("keystore_port")));
+			
+			ArrayList<Message> messages = new ArrayList<Message>();
+			
+			while(true) {
+				SSLSocket sock = (SSLSocket) socket.accept();
+				new ChatServerThread(sock, messages).start();
+			}
+		
+		}catch(IOException e) {
+			UserLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+	
+		
+	}
+	
+}

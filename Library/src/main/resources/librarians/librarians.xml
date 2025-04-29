@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<librarians>
+	<librarian>
+		<username>admin</username>
+		<password>admin</password>
+	</librarian>
+	<librarian>
+		<username>b1</username>
+		<password>b1</password>
+	</librarian>
+	<librarian>
+		<username>b2</username>
+		<password>b2</password>
+	</librarian>
+</librarians>

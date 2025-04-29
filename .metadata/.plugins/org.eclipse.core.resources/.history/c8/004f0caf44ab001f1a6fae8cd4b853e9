@@ -1,0 +1,12 @@
+package net.etfbl.org.chat;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+public class ChatServerThread extends Thread {
+	
+	
+	ObjectOutputStream output;
+	ObjectInputStream
+
+}

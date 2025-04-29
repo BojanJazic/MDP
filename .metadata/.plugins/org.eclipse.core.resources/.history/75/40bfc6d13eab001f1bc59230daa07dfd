@@ -1,0 +1,14 @@
+package net.etfbl.org.model;
+
+import java.time.LocalDateTime;
+
+public class Message {
+
+	private String sender;
+	private String recipient;
+	private String content;
+	private LocalDateTime dateTime;
+	
+	
+	
+}

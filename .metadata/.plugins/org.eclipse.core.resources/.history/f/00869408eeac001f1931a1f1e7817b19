@@ -1,0 +1,76 @@
+package net.etfbl.org.libraryControllers;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import javax.swing.JOptionPane;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import net.etfbl.org.libraryLogger.LibraryLogger;
+import net.etfbl.org.multicast.MulticastClient;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.xmlReader.XMLReader;
+
+public class LoginController {
+	
+	private static HashMap<String, String> librarians = XMLReader.getLibrariansFromXML();
+
+    private ObservableList<String> messages = FXCollections.observableArrayList();
+
+	
+	 @FXML
+	 private Button btnLogin;
+
+	 @FXML
+	 private PasswordField tbPassword;
+
+	 @FXML
+	 private TextField tbUsername;
+
+	 @FXML
+	 void login(ActionEvent event) {
+		 boolean temp = false;
+	    	for(Map.Entry<String, String> entry : librarians.entrySet()) {
+	    		if(tbUsername.getText().equals(entry.getKey()) && tbPassword.getText().equals(entry.getValue())) {
+	    			temp = true;
+	    		}
+	    		if(temp == true)
+	    			break;
+	    	}
+	    	if(temp) {
+	    		//System.out.println("DOSLO OVDJE");
+	    		try {
+	    	        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+					FXMLLoader loader = new FXMLLoader(getClass().getResource(PropertiesFileLoader.getInstance().getSpecifiedProperty("library_main_window_fxml")));
+					Scene scene = new Scene(loader.load());
+					
+					MulticastClient multicastClient = new MulticastClient(messages);
+                	multicastClient.start();
+                	System.out.println("Multicast client thread started");
+
+					
+					LibraryMainWindowController controller = loader.getController();
+					controller.setUsername(tbUsername.getText().trim());
+					
+					stage.setScene(scene);
+					stage.setTitle("");
+					stage.setResizable(false);
+					stage.show();
+				} catch (Exception e) {
+					LibraryLogger.LOGGER.log(Level.SEVERE, "", e);
+				}
+	    		
+	    	} else{
+	    		JOptionPane.showMessageDialog(null, "Ne vazi drug");
+	    	}
+	    }
+}

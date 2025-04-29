@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java version="17.0.13" class="java.beans.XMLDecoder">
+ <object class="java.util.ArrayList">
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Detelinara</string>
+    </void>
+    <void property="email">
+     <string>draganjovetorbica@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Dragan</string>
+    </void>
+    <void property="lastName">
+     <string>Torbica</string>
+    </void>
+    <void property="password">
+     <string>WQ8POwou0EZ329/8sXwa3l34SlspXeAuNPFa+5c4kyWi3VfpHWrYWXjP9yVnuBYEhvnsf5BTfDymPxfhasWEoQ==</string>
+    </void>
+    <void property="username">
+     <string>drago</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Pejcevi salasi bb</string>
+    </void>
+    <void property="email">
+     <string>papdubi@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Djordje</string>
+    </void>
+    <void property="lastName">
+     <string>Djordje</string>
+    </void>
+    <void property="password">
+     <string>/Z/xXcIXEo19uVQvk8oG0W4ZKYpIePJYcf0mDGYs0bz7T7ULqIvickH3p1Okd42gAAFEt05/vNdux60RmmE90A==</string>
+    </void>
+    <void property="username">
+     <string>papadubi</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Bosna Lijek</string>
+    </void>
+    <void property="email">
+     <string>mirkec@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Mirko</string>
+    </void>
+    <void property="lastName">
+     <string>Cemes</string>
+    </void>
+    <void property="password">
+     <string>R4wOv6d7puE4RqQYIFXFEUAUz3pFOAn7QOtU3CSPXVK6PdarRyO/gdS33TVfpW/khBtt0x+Xynse/vNpmJ02Fw==</string>
+    </void>
+    <void property="username">
+     <string>mirkec</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>true</boolean>
+    </void>
+    <void property="address">
+     <string>Rumunija</string>
+    </void>
+    <void property="email">
+     <string>grof@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Grof</string>
+    </void>
+    <void property="lastName">
+     <string>Grof</string>
+    </void>
+    <void property="password">
+     <string>csCMvXL9MbGol9RVmfSSMyh4vVVijRyht0qXvhMJb9SYD4MqAtKk6O6txu7xKhgbDUYAPoww+09enJNRv4yLqQ==</string>
+    </void>
+    <void property="username">
+     <string>seki</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Baraći</string>
+    </void>
+    <void property="email">
+     <string>rade@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Rade</string>
+    </void>
+    <void property="lastName">
+     <string>Rade</string>
+    </void>
+    <void property="password">
+     <string>qsbnM9jDIT+ptJ9CizPyXxvVyIfUtYq7yvkySd6rV/u40XM7GQjKeOtxRaYvL0vZfqCqgHSQ+a+PmYHe0MWAFA==</string>
+    </void>
+    <void property="username">
+     <string>rade</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Majke Jugovica 1</string>
+    </void>
+    <void property="email">
+     <string>bojanjazic99@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Bojan</string>
+    </void>
+    <void property="lastName">
+     <string>Jazic</string>
+    </void>
+    <void property="password">
+     <string>3ivliE0bgABIX3pmRtp39glpkK2Fzr19GhmLPaVelQ5qNCYR4L4l7yv4BBd8e8UvNkQBXq6ap+UYcCrvV7Kumw==</string>
+    </void>
+    <void property="username">
+     <string>jazza</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Novi Sad</string>
+    </void>
+    <void property="email">
+     <string>zivica@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Zivica</string>
+    </void>
+    <void property="lastName">
+     <string>Zivica</string>
+    </void>
+    <void property="password">
+     <string>0WegxtBBx/qUIPRXCvKaQWSkxPPKBCZcVIZa4R96thJ32815lW7BjzLt8sjJJy4/d9dkHJQqif1K1gRZ3hFdIA==</string>
+    </void>
+    <void property="username">
+     <string>zivica</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Patre 5</string>
+    </void>
+    <void property="email">
+     <string>petar@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Petar</string>
+    </void>
+    <void property="lastName">
+     <string>Petar</string>
+    </void>
+    <void property="password">
+     <string>jZfzKnoPkE99mSxc8UsCAk+Oao1HI9nsWaEfq0/ExV20vyK79/upjuIBuuVyjYQqZXpYZyZbKyW1sowvjOlmfw==</string>
+    </void>
+    <void property="username">
+     <string>pero</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Majke Jugovica 1</string>
+    </void>
+    <void property="email">
+     <string>jazicbojan991@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Bojan</string>
+    </void>
+    <void property="lastName">
+     <string>Jazic</string>
+    </void>
+    <void property="password">
+     <string>5F9Brsb/SWw7PgDKTzRUrrFF6XWWxZuDpM/ZgxlArsze0ZFvP0/rB8nxJntA/JCh1SUNovKBBVTE3cuEP7dIGg==</string>
+    </void>
+    <void property="username">
+     <string>bojan</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Krfska 22</string>
+    </void>
+    <void property="email">
+     <string>mmiric@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Mitar</string>
+    </void>
+    <void property="lastName">
+     <string>Mitar</string>
+    </void>
+    <void property="password">
+     <string>/t6UCwyFDy4lQLNj1h8hp4y4GpslNYk06cRPKjZsKd7OD6anoYaHszlr6BTyK2QyNrez3UwoBC+wdEa/8ZcCRA==</string>
+    </void>
+    <void property="username">
+     <string>mitar</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>Patre 5</string>
+    </void>
+    <void property="email">
+     <string>llazarevic@gmail.com</string>
+    </void>
+    <void property="firstName">
+     <string>Laza</string>
+    </void>
+    <void property="lastName">
+     <string>Lazarevic</string>
+    </void>
+    <void property="password">
+     <string>AzTAm0Aqa7UgM9MebAMQnizLHg6e799HuARW5O8mbxuF81iOS5ofiqBbLrd0oSOYss2F5IyG09+3cXEvFj6D4A==</string>
+    </void>
+    <void property="username">
+     <string>laza</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>true</boolean>
+    </void>
+    <void property="address">
+     <string>adresa</string>
+    </void>
+    <void property="email">
+     <string>novi email</string>
+    </void>
+    <void property="firstName">
+     <string>Novi</string>
+    </void>
+    <void property="lastName">
+     <string>Novi</string>
+    </void>
+    <void property="password">
+     <string>uKwHsk1QitD5v/HjUgKH50s3GjaTlFJhpigM2VPFp10Iw1x7WYo1rccFqc7uUld9NEfzOwb8RfR0MSzuDH6N4Q==</string>
+    </void>
+    <void property="username">
+     <string>user</string>
+    </void>
+   </object>
+  </void>
+  <void method="add">
+   <object class="net.etfbl.org.model.User">
+    <void property="accountActivated">
+     <boolean>true</boolean>
+    </void>
+    <void property="accountBlocked">
+     <boolean>false</boolean>
+    </void>
+    <void property="address">
+     <string>adresa</string>
+    </void>
+    <void property="email">
+     <string>mejl</string>
+    </void>
+    <void property="firstName">
+     <string>Korisnik</string>
+    </void>
+    <void property="lastName">
+     <string>Korisnik</string>
+    </void>
+    <void property="password">
+     <string>7Dnq23MK4gwgN1HzGV99ES9OyZR01EUOrYdQKR0METdJZYMq91Y/bQUVny94gdrY7HUrNB3FTQnz2nTz+XnKIw==</string>
+    </void>
+    <void property="username">
+     <string>korisnik</string>
+    </void>
+   </object>
+  </void>
+ </object>
+</java>

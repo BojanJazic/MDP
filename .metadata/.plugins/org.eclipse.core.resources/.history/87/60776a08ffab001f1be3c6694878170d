@@ -1,0 +1,200 @@
+package net.etfbl.org.libraryControllers;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+
+import javax.swing.JOptionPane;
+
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import net.etfbl.org.libraryLogger.LibraryLogger;
+import net.etfbl.org.model.Book;
+import net.etfbl.org.order.Order;
+import net.etfbl.org.order.OrderItem;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+
+public class SuppliersController implements Initializable{
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	
+	private String host = INSTANCE.getSpecifiedProperty("suppliers_host");
+	private int port = Integer.valueOf(INSTANCE.getSpecifiedProperty("suppliers_port"));
+	
+    @FXML
+    private Button btnOrder;
+
+    @FXML
+    private Button btnLoadSupplierBooks;
+  
+    @FXML
+    private Button btnAddItem;
+
+    @FXML
+    private ListView<String> lvSuppliersPreview;
+
+    @FXML
+    private TableView<Book> tvBooksPreview;
+    
+    @FXML
+    private TableColumn<Book, Integer> columnID;
+
+    @FXML
+    private TableColumn<Book, String> columnTitle;
+
+    @FXML
+    private TableColumn<Book, String> columnAuthor;
+    
+    @FXML
+    private TableColumn<Book, String> columnLanguage;
+
+    @FXML
+    private TableColumn<Book, String> columnPublicationDate;
+
+    
+    private ArrayList<String> suppliers = new ArrayList<String>();
+    private ObservableList<String> obsSuppliers = FXCollections.observableArrayList();
+    private ArrayList<OrderItem> orderList = new ArrayList<OrderItem>();
+    
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+    	columnID.setCellValueFactory(new PropertyValueFactory<>("id"));
+		columnTitle.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
+		columnAuthor.setCellValueFactory(new PropertyValueFactory<>("bookAuthor"));
+		columnLanguage.setCellValueFactory(new PropertyValueFactory<>("language"));
+		columnPublicationDate.setCellValueFactory(new PropertyValueFactory<>("publicationYear"));
+    	
+	//	tvBooksPreview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		
+		getSuppliers();
+		
+    }
+    
+    
+    @FXML
+    void createOrder(ActionEvent event) {
+    	ArrayList<Book> selectedBooks = (ArrayList<Book>) tvBooksPreview.getSelectionModel().getSelectedItems();
+    	
+    	
+    	
+    	if(!selectedBooks.isEmpty()) {
+    		String selectedSupplier = lvSuppliersPreview.getSelectionModel().getSelectedItem();
+    		
+    		selectedBooks.stream()
+    					 .forEach(b -> orderList.add(new OrderItem(b)));
+    		
+    		Order order = new Order(orderList);
+    		
+    		
+    		
+    		
+    		
+//    		try {
+//				InetAddress address = InetAddress.getByName(host);
+//				try(Socket socket = new Socket(address, port)){
+//					ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+//					ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+//					
+//					output.writeObject("ADD_NEW_ORDER#" + selectedSupplier);
+//					output.writeObject(new Order(orderList));
+//					output.flush();
+//					
+//					orderList.clear();
+//				}
+//			} catch (Exception e) {
+//				LibraryLogger.LOGGER.log(Level.SEVERE, "", e);
+//			}
+    	}
+    }
+    
+    private void sendOrder(Order order) {
+    	ConnectionFactory connFactory = new ConnectionFactory();
+    	connFactory.setHost(INSTANCE.getSpecifiedProperty("rabbit_mq_address"));
+    	
+    	try(Connection conn = connFactory.newConnection()){
+    		
+    	}catch(IOException e) {
+    		
+    	}
+    	
+    }
+    
+
+    @FXML
+    void loadSupplierBooks(ActionEvent event) {
+    	String selectedSupplier = lvSuppliersPreview.getSelectionModel().getSelectedItem();
+    	
+    	if(selectedSupplier != null) {
+    		try {
+				InetAddress address = InetAddress.getByName(host);
+				
+				try(Socket socket = new Socket(address, port)){
+					ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+					ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+					
+					output.writeObject("BOOKS_BY_SUPPLIER#" + selectedSupplier);
+					output.flush();
+					
+					ArrayList<Book> books = (ArrayList<Book>)input.readObject();
+					
+					tvBooksPreview.setItems(FXCollections.observableArrayList(books));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				LibraryLogger.LOGGER.log(Level.SEVERE, "", e);
+			}
+    	}
+    }
+    
+    @FXML
+    void addItemToList(ActionEvent event) {
+    	Book selectedBook = tvBooksPreview.getSelectionModel().getSelectedItem();
+    	
+    	if(selectedBook != null) {
+    		orderList.add(new OrderItem(selectedBook));
+    	}
+    }
+    
+    private void getSuppliers() {
+    	try {
+			InetAddress address = InetAddress.getByName(host);
+			try(Socket socket = new Socket(address, port)){
+				ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+				ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+				
+				output.writeObject("GET_SUPPLIERS");
+				output.flush();
+				
+				suppliers = (ArrayList<String>)input.readObject();
+				
+				obsSuppliers = FXCollections.observableArrayList(suppliers);
+				
+				lvSuppliersPreview.setItems(obsSuppliers);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			LibraryLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+    }
+	
+}

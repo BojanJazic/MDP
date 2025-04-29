@@ -1,0 +1,67 @@
+package net.etfbl.org.multicast;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.util.ArrayList;
+import java.util.logging.Level;
+
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.libraryLogger.LibraryLogger;
+
+public class MulticastClient extends Thread {
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	private static final int PORT = Integer.parseInt(INSTANCE.getSpecifiedProperty("multicast_port"));
+	private static final String HOST = INSTANCE.getSpecifiedProperty("multicast_host");
+	public static ArrayList<String> MULTICAST_MESSAGES = new ArrayList<String>();
+	
+	private ObservableList<String> messages;
+	
+	private InetAddress address = null;
+	private MulticastSocket socket = null;
+	
+	public MulticastClient(ObservableList<String> messages) {
+		this.messages = messages;
+		setDaemon(true);
+	}
+	
+		
+	@Override
+	public void run() {
+		byte[] buffer = new byte[1024];
+		
+		try {
+			socket = new MulticastSocket(PORT);
+			address = InetAddress.getByName(HOST);
+			
+			socket.joinGroup(address);
+			
+			while(true) {
+				DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+				socket.receive(dp);
+				
+				String recieved = new String(dp.getData(), 0, dp.getLength());
+				if(!recieved.startsWith("The librarian"))
+					MULTICAST_MESSAGES.add(recieved);
+				Platform.runLater(() -> messages.add(recieved));
+								
+			}
+			
+		}catch(IOException e) {
+			LibraryLogger.LOGGER.log(Level.SEVERE, "An error occurred while establishing a multicast connection.", e);
+		}finally {
+			try {
+				socket.leaveGroup(address);
+				socket.close();
+			}catch (IOException e) {
+				LibraryLogger.LOGGER.log(Level.SEVERE, "An error occured during socket closing.", e);
+			}
+		}
+	}
+	
+	
+}

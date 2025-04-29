@@ -1,0 +1,331 @@
+package net.etfbl.org.supplierControllers;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+
+import javax.swing.JOptionPane;
+
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.GetResponse;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import net.etfbl.org.model.Book;
+import net.etfbl.org.order.Order;
+import net.etfbl.org.order.OrderItem;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.supplierApp.SupplierApp;
+import net.etfbl.org.supplierLogger.SupplierLogger;
+
+public class SupplierMainWindowController implements Initializable {
+
+	@FXML
+	private Button btnShowAllBooks;
+
+	@FXML
+	private Button btnViewOrders;
+	
+	@FXML
+    private Button btnDeleteBook;
+
+	@FXML
+	private TableView<Book> tvBookTable;
+
+	@FXML
+	private TableColumn<Book, Integer> columnId;
+
+	@FXML
+	private TableColumn<Book, String> columnTitle;
+
+	@FXML
+	private TableColumn<Book, String> columnAuthor;
+
+	@FXML
+	private TableColumn<Book, String> columnReleaseDate;
+
+	@FXML
+	private TableColumn<Book, String> columnLanguage;
+
+	@FXML
+	private TableColumn<Book, String> columnDetails;
+	
+	@FXML
+    private Button btnAddNewBook;
+	
+	
+	private static String supplier;
+	
+	private ArrayList<Order> ordersList = new ArrayList<Order>();
+	
+	
+	
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		Platform.runLater(() -> {
+				
+		// TODO Auto-generated method stub
+		columnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+		columnTitle.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
+		columnAuthor.setCellValueFactory(new PropertyValueFactory<>("bookAuthor"));
+		columnReleaseDate.setCellValueFactory(new PropertyValueFactory<>("publicationYear"));
+		columnLanguage.setCellValueFactory(new PropertyValueFactory<>("language"));
+		
+		
+		columnDetails.setCellFactory(col -> new TableCell<>() {
+			private final Button details = new Button("Details");
+			
+			
+			{
+				details.setOnAction(e -> {
+					Book book = getTableView().getItems().get(getIndex());
+					showBookDetails(book);
+					
+				});
+			}
+			
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if(empty || getTableView().getItems().get(getIndex()) == null) {
+					setGraphic(null);	//hide button if book doesn't exist in the row
+				}else {
+					setGraphic(details);
+				}
+			}
+			
+		});
+		
+		});
+	}
+	
+	
+	@FXML
+	void addNewBook(ActionEvent event) {
+		//new JOptionPane().showMessageDialog(null, supplier);
+		 try {
+			FXMLLoader loader = new FXMLLoader(SupplierApp.class.getResource(PropertiesFileLoader.getInstance().getSpeciefiedProperty("add_new_book_fxml")));
+			Scene scene = new Scene(loader.load());
+			
+			Stage primaryStage = new Stage();
+			primaryStage.setTitle("Add new book");
+			primaryStage.setScene(scene);
+			primaryStage.getIcons().add(new Image(getClass().getResourceAsStream(PropertiesFileLoader.getInstance().getSpeciefiedProperty("add_icon"))));
+			primaryStage.initModality(Modality.APPLICATION_MODAL);
+			primaryStage.initOwner((Stage)tvBookTable.getScene().getWindow());
+			
+			primaryStage.showAndWait();
+			 
+		} catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+	 }
+	
+	private void showBookDetails(Book book) {
+		try {
+			FXMLLoader loader = new FXMLLoader(SupplierApp.class.getResource(PropertiesFileLoader.getInstance().getSpeciefiedProperty("book_details_fxml")));
+			Scene scene = new Scene(loader.load());
+			
+			Stage primaryStage = new Stage();
+			primaryStage.setTitle("Book details");
+			primaryStage.getIcons().add(new Image(getClass().getResourceAsStream((PropertiesFileLoader.getInstance().getSpeciefiedProperty("books_icon")))));
+			primaryStage.setScene(scene);
+			primaryStage.initModality(Modality.APPLICATION_MODAL);
+			primaryStage.initOwner((Stage)tvBookTable.getScene().getWindow());
+			
+			primaryStage.setUserData(book);
+			
+			primaryStage.showAndWait();
+		}catch (Exception e) {
+			SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+		
+	}
+	
+	@FXML
+	void showAllBooks(ActionEvent event) {
+
+		Task<ObservableList<Book>> task = new Task<>() {
+			@Override
+			protected ObservableList<Book> call() throws Exception {
+				InetAddress addr = InetAddress.getByName("localhost");
+				int port = Integer.parseInt(PropertiesFileLoader.getInstance().getSpeciefiedProperty("server_port"));
+
+				try (Socket sock = new Socket(addr, port)) {
+					ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+					ObjectInputStream ois = new ObjectInputStream(sock.getInputStream());
+
+					oos.writeObject("LOAD_ALL_BOOKS#" + supplier);
+					ArrayList<Book> books = (ArrayList<Book>) ois.readObject();
+					
+					if(!books.isEmpty())
+						return FXCollections.observableArrayList(books);
+					else
+						return FXCollections.observableArrayList(new ArrayList<Book>());
+
+				}
+
+			}
+		};
+
+		task.setOnSucceeded(e -> tvBookTable.setItems(task.getValue()));
+		task.setOnFailed(e -> System.out.println("Failed to load books: " + task.getException()));
+
+		new Thread(task).start();
+	}
+
+	@FXML
+	void viewAllOrders(ActionEvent event) {
+		try {
+			//ordersList = getOrders();
+			
+			
+			FXMLLoader loader = new FXMLLoader(SupplierApp.class.getResource(PropertiesFileLoader.getInstance().getSpeciefiedProperty("order_list_fxml"))) ;
+			Scene scene = new Scene(loader.load());
+			
+			/*
+			 * OrderController controller = loader.getController();
+			 * 
+			 * if(controller == null) { System.out.println("Controller is null"); }else {
+			 * System.out.println("Controller isn't null!"); }
+			 */
+			//controller.setOrder(ordersList);
+			
+			  Book b1 = new Book(1, "Knjiga1", "Autor1", "1999", "srpski", "coverPage",
+			  "sadrzaj"); Book b2 = new Book(2, "Knjiga2", "Autor2", "1999", "srpski",
+			  "coverPage", "sadrzaj"); OrderItem item1 = new OrderItem(b1); 
+			  OrderItem item2 = new OrderItem(b2, 30); 
+			  ArrayList<OrderItem> items = new ArrayList<OrderItem>(); 
+			  items.add(item1); items.add(item2); 
+			  
+			  Book b3 = new Book(3, "Knjiga3", "Autor1", "1999", "srpski", "coverPage",
+					  "sadrzaj"); 
+			  Book b4 = new Book(4, "Knjiga4", "Autor2", "1999", "srpski",
+					  "coverPage", "sadrzaj");
+			  OrderItem item3 = new OrderItem(b3, 30);
+			  OrderItem item4 = new OrderItem(b4, 40);
+			  ArrayList<OrderItem> items2 = new ArrayList<OrderItem>();
+			  items2.add(item3);
+			  items2.add(item4);
+			  
+			  Order order = new Order(items);
+			  Order order2 = new Order(items2);
+			  ordersList.add(order);
+			  ordersList.add(order2);
+			 
+			
+			Stage stage = new Stage();
+			stage.setScene(scene);
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.initOwner((Stage)tvBookTable.getScene().getWindow());
+			stage.setUserData(ordersList);
+			stage.showAndWait();
+			
+			
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+	}
+	
+	 @FXML
+	 void deleteBook(ActionEvent event) {
+		 
+		Book selectedBook = tvBookTable.getSelectionModel().getSelectedItem();
+		
+		if(selectedBook != null) {
+			int selectedBookIndex = selectedBook.getId();
+		try {
+			InetAddress address = InetAddress.getByName("localhost");
+			int port = Integer.parseInt(PropertiesFileLoader.getInstance().getSpeciefiedProperty("server_port"));
+			
+			try(Socket sock = new Socket(address, port)){
+				ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
+				ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+				
+				out.writeObject("DELETE#" + supplier + "#" + selectedBookIndex);
+				
+				String response = (String)in.readObject();
+				
+				if("OK".equals(response)) {
+					new JOptionPane().showMessageDialog(null, response);
+					tvBookTable.refresh();
+				}else {
+					new JOptionPane().showMessageDialog(null, "Unsuccessfully");
+				}
+			}
+		}catch(ClassNotFoundException | IOException e) {
+			SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+	 }else {
+		 new JOptionPane().showMessageDialog(null, "First, choose a book!");
+	 }
+
+		
+	 }
+
+	private ArrayList<Order> getOrders() {
+		Gson gson = new Gson();
+		
+		ConnectionFactory connFactory = new ConnectionFactory();
+		connFactory.setHost(PropertiesFileLoader.getInstance().getSpeciefiedProperty("rabbit_mq"));
+		
+		try(Connection connection = connFactory.newConnection();
+			Channel ch = connection.createChannel()){
+			
+			ch.queueDeclare(supplier, false, false, false, null);
+			
+			GetResponse response = ch.basicGet(supplier, true);
+			
+			if(response != null) {
+				String jsonOrder = new String(response.getBody(), StandardCharsets.UTF_8);
+				ArrayList<Order> temp = gson.fromJson(jsonOrder, new TypeToken<ArrayList<Order>>() {}.getType());
+				
+				return temp;
+			}
+
+		} catch (Exception e) {
+			SupplierLogger.LOGGER.log(Level.SEVERE, "An error occured while getting orders.", e);
+		}
+		
+		return null;
+	}
+	
+	public static void setSupplier(String name) {
+		supplier = name;
+	}
+	
+	public static String getSupplier() {
+		return supplier;
+	}
+	
+}

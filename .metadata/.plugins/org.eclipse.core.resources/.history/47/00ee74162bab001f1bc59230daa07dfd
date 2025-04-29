@@ -1,0 +1,67 @@
+package net.etfbl.org.libraryControllers;
+
+
+import java.net.URL;
+import java.util.ResourceBundle;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import net.etfbl.org.multicast.MulticastClient;
+
+/*kad otvorim, ucitace se prva narudzba i prikazati, 
+ * kad prihvatim ili odbijem, salje se multicast poruka i dodaje se sljedeca narudzba na listu
+ * 
+ * */
+
+
+//ne osvjezi kad se nove multicast poruke posalju, to nije dobro
+
+
+public class SuggestionsController implements Initializable{
+	
+
+	private static ObservableList<String> list;
+	
+    @FXML
+    private Button btnAcceptSuggestion;
+
+    @FXML
+    private Button btnDeclineSuggestion;
+
+    @FXML
+    private ListView<String> lvSuggestionsPreview;
+    
+    
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+    	refreshList();
+    	lvSuggestionsPreview.refresh();
+    	if(!list.isEmpty()) {
+    		lvSuggestionsPreview.setItems(list);
+    		
+    		
+    	}
+    		
+    }
+    
+    private static void refreshList() {
+    	list = FXCollections.observableArrayList(MulticastClient.MULTICAST_MESSAGES);
+    }
+    
+
+    @FXML
+    void acceptSuggestion(ActionEvent event) {
+
+    }
+
+    @FXML
+    void declineSuggestion(ActionEvent event) {
+
+    }
+	
+}

@@ -1,0 +1,116 @@
+package net.etfbl.org.libraryControllers;
+
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.SelectionMode;
+import net.etfbl.org.libraryLogger.LibraryLogger;
+import net.etfbl.org.multicast.MulticastClient;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+
+/*kad otvorim, ucitace se prva narudzba i prikazati, 
+ * kad prihvatim ili odbijem, salje se multicast poruka i dodaje se sljedeca narudzba na listu
+ * 
+ * */
+
+
+//ne osvjezi kad se nove multicast poruke posalju, to nije dobro
+
+
+public class SuggestionsController implements Initializable{
+	
+
+	private static ObservableList<String> list;
+	
+	private String username;
+	
+    @FXML
+    private Button btnAcceptSuggestion;
+
+    @FXML
+    private Button btnDeclineSuggestion;
+
+    @FXML
+    private ListView<String> lvSuggestionsPreview;
+    
+    
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+    	lvSuggestionsPreview.getSelectionModel().setSelectionMode(
+    			SelectionMode.MULTIPLE
+    	);
+    	refreshList();
+    	lvSuggestionsPreview.refresh();
+    	if(!list.isEmpty()) {
+    		lvSuggestionsPreview.setItems(list);
+    		
+    		
+    	}
+    		
+    }
+    
+    private static void refreshList() {
+    	list = FXCollections.observableArrayList(MulticastClient.MULTICAST_MESSAGES);
+    }
+    
+
+    @FXML
+    void acceptSuggestion(ActionEvent event) {
+    	ObservableList<String> selectedItems = lvSuggestionsPreview.getSelectionModel().getSelectedItems();
+    	ObservableList<String> itemsToRemove = FXCollections.observableArrayList(selectedItems);
+    	
+    	String message = "The librarian[" + username + "]" + "accepted the proposal.";
+    	
+    	list.remove(itemsToRemove);
+    	sendMulticastMessage(message);
+    	
+    }
+
+    @FXML
+    void declineSuggestion(ActionEvent event) {
+    	ObservableList<String> selectedItems = lvSuggestionsPreview.getSelectionModel().getSelectedItems();
+    	ObservableList<String> itemsToRemove = FXCollections.observableArrayList(selectedItems);
+    	
+    	String message = "The librarian[" + username + "]" + "rejected the proposal.";
+    	
+    	list.remove(itemsToRemove);
+    	sendMulticastMessage(message);
+    	lvSuggestionsPreview.refresh();
+    }
+	
+    
+    private void sendMulticastMessage(String message) {
+    	try {
+			InetAddress address = InetAddress.getByName(PropertiesFileLoader.getInstance().getSpecifiedProperty("multicast_host"));
+			int port = Integer.parseInt(PropertiesFileLoader.getInstance().getSpecifiedProperty("multicast_port"));
+			
+			byte[] buffer = message.getBytes();
+			
+			try(DatagramSocket socket = new DatagramSocket()){
+				DatagramPacket dp = new DatagramPacket(buffer, buffer.length, address, port);
+				socket.send(dp);
+			}
+		} catch (IOException e) {
+			LibraryLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+    }
+    
+    
+    public void setUsername(String username) {
+    	this.username = username;
+    }
+}

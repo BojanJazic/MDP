@@ -1,0 +1,28 @@
+package net.etfbl.org.supplierServer;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.logging.Level;
+
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.supplierLogger.SupplierLogger;
+
+public class SupplierServer {
+
+	public static void main(String[] args) {
+		try {
+			System.out.println("Server pokrenut");
+			ServerSocket socket = new ServerSocket(Integer.parseInt(PropertiesFileLoader.getInstance().getSpeciefiedProperty("server_port")));
+			
+			while(true) {
+				Socket s = socket.accept();
+				new SupplierServerThread(s).start();
+			} 
+		} catch (IOException e) {
+			SupplierLogger.LOGGER.log(Level.SEVERE, "An error occured at SupplierServer class.", e);
+		}
+
+	}
+
+}

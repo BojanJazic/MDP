@@ -1,0 +1,144 @@
+package net.etfbl.org.rmi;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.logging.Level;
+
+import javax.swing.JOptionPane;
+
+import com.google.gson.Gson;
+
+
+import net.etfbl.org.billModel.Bill;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.supplierLogger.SupplierLogger;
+
+public class RMIService implements RMIServiceInterface {
+		
+	
+	private static PropertiesFileLoader instance = PropertiesFileLoader.getInstance();
+	
+	@Override
+	public double saveBill(Bill bill) throws RemoteException {
+		
+		billSerialization(bill);
+		
+		double tax = Double.parseDouble(instance.getSpeciefiedProperty("tax"));
+		double taxToPay = bill.getPrice() * tax;
+		
+		BigDecimal bd = new BigDecimal(taxToPay);
+		BigDecimal roundedValue = bd.setScale(2, RoundingMode.HALF_UP);
+		
+		return roundedValue.doubleValue();
+	}
+	
+	
+	private void billSerialization(Bill bill) {
+		String fileSeparator = "/";
+		String uniqueName = bill.getDate().toString() + ".json"; // Pretpostavljamo da je ovo jedinstveno ime
+		String directoryPath = instance.getSpeciefiedProperty("bills");
+		
+		File directory = new File(directoryPath);
+		File file = new File(directory, uniqueName);
+		
+		try {
+			if(!directory.exists() && !directory.mkdirs()) {
+                throw new IOException("Failed to create directories: " + directory.getAbsolutePath());
+			}
+			
+			try (Writer writer = new FileWriter(file)) {
+                Gson gson = new Gson();
+                gson.toJson(bill, writer); // Serijalizacija objekta Bill u JSON format
+            }
+
+            System.out.println("File saved successfully at: " + file.getAbsolutePath());
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			 System.err.println("An error occurred while creating or writing to the file.");
+	         e.printStackTrace();
+		}
+		
+		
+		
+//		String directoryName = instance.getSpeciefiedProperty("bills");
+//		File supplierDirectory = new File(
+//				directoryName/* + fileSeparator + instance.getSpeciefiedProperty("bill_start") */);
+//		File billFile = new File(supplierDirectory, instance.getSpeciefiedProperty("bill_start") + uniqueName);
+//		if(!supplierDirectory.exists()) {
+//			new JOptionPane().showMessageDialog(null, "DIR NE POSTOJI, ALI JE KREIRAN");
+//			supplierDirectory.mkdirs();
+//			try {
+//				billFile.createNewFile();
+//			}catch (Exception e) {
+//				SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+//			}
+//			
+//			try(PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(billFile)), true)){
+//				Gson gson = new Gson();
+//				pw.println(gson.toJson(bill));
+//				pw.flush();
+//			}catch (Exception e) {
+//				SupplierLogger.LOGGER.log(Level.SEVERE, "Greska u billSerialization", e);
+//			}
+//		}else {
+//			new JOptionPane().showMessageDialog(null, "DIR POSTOJI");
+//			try(PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(billFile)), true)){
+//				Gson gson = new Gson();
+//				pw.println(gson.toJson(bill));
+//				pw.flush();
+//			}catch (Exception e) {
+//				SupplierLogger.LOGGER.log(Level.SEVERE, "Greska u billSerialization, drugi catch", e);
+//			}
+//		}
+//		
+		
+//		File file = new File(instance.getSpeciefiedProperty("bills") + 
+//		                     File.separator + 
+//		                     instance.getSpeciefiedProperty("bill_start") + 
+//		                     uniqueName + ".json");
+//
+//		try {
+//		    // Provjera da li direktorijum postoji i kreiranje ako ne postoji
+//		    File parentDir = file.getParentFile();
+//		    if (!parentDir.exists() && !parentDir.mkdirs()) {
+//		        throw new IOException("Failed to create directories: " + parentDir.getAbsolutePath());
+//		    }
+//
+//		    // Kreiranje i pisanje u fajl
+//		    try (Writer writer = new FileWriter(file)) {
+//		        Gson gson = new Gson();
+//		        gson.toJson(bill, writer); // Serijalizacija objekta u JSON format
+//		    }
+//		    System.out.println("File saved successfully: " + file.getAbsolutePath());
+//		} catch (IOException e) {
+//		    SupplierLogger.LOGGER.log(Level.SEVERE, "An error occurred during bill serialization.", e);
+//		}
+
+	}
+	
+	
+	public static void main(String[] args) {
+		try {
+			RMIService server = new RMIService();
+			RMIServiceInterface stub = (RMIServiceInterface) UnicastRemoteObject.exportObject(server, 0);
+			Registry registry = LocateRegistry.createRegistry(Integer.valueOf(instance.getSpeciefiedProperty("rmi_port")));
+			registry.rebind("RMIService", stub);
+			System.out.println("RMI server started.");
+		} catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "An error occured while starting RMIService.", e);
+		}
+	}
+}

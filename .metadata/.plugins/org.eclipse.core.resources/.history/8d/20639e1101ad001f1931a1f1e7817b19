@@ -1,0 +1,389 @@
+package net.etfbl.org.userControllers;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import javax.swing.JOptionPane;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import net.etfbl.org.model.Book;
+import net.etfbl.org.model.User;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.userApp.UserApp;
+import net.etfbl.org.userLogger.UserLogger;
+
+
+public class UserMainWindowController implements Initializable{
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+   
+	
+	private ObservableList<String> messages = FXCollections.observableArrayList();
+
+    @FXML
+    private Button btnChat;
+	
+	@FXML
+	private Button btnShowBooks;
+	
+	@FXML
+    private Button btnDownload;
+	
+	@FXML
+    private Button btnCreateOrder;
+	
+	@FXML
+    private TableView<Book> tvBookTable;
+
+    @FXML
+    private TableColumn<Book, String> columnAuthor;
+
+    @FXML
+    private TableColumn<Book, String> columnDetails;
+
+    @FXML
+    private TableColumn<Book, Integer> columnId;
+
+    @FXML
+    private TableColumn<Book, String> columnLanguage;
+
+    @FXML
+    private TableColumn<Book, String> columnPublicationDate;
+
+    @FXML
+    private TableColumn<Book, String> columnTitle;
+
+    @FXML
+    private TextField tbSearchField;
+    
+    @FXML
+    private Label lbUsername;
+    
+    private User currentUser;
+    
+    private ArrayList<Book> books;
+    private ObservableList<Book> listOfBooks;
+    private FilteredList<Book> filteredUsers;
+    private ArrayList<Book> booksForDownload = new ArrayList<Book>();
+    
+    @Override
+	public void initialize(URL location, ResourceBundle resources) {
+		Platform.runLater(() -> {
+			
+		Stage stage = (Stage)btnDownload.getScene().getWindow();
+		currentUser = (User) stage.getUserData();
+			
+		columnId.setCellValueFactory(new PropertyValueFactory<>("id"));
+		columnTitle.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
+		columnAuthor.setCellValueFactory(new PropertyValueFactory<>("bookAuthor"));
+		columnPublicationDate.setCellValueFactory(new PropertyValueFactory<>("publicationYear"));
+		columnLanguage.setCellValueFactory(new PropertyValueFactory<>("language"));
+		
+		
+		
+		columnDetails.setCellFactory(col -> new TableCell<Book, String>() {
+			private final Button details = new Button("Details");
+			
+			{
+				details.setOnAction(e -> {
+					Book book = getTableView().getItems().get(getIndex());
+					showBookDetails(book);
+					
+				});
+			}
+			
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if(empty || getTableView().getItems().get(getIndex()) == null) {
+					setGraphic(null);	//hide button if book doesn't exist in the row
+				}else {
+					setGraphic(details);
+				}
+			}
+			
+			});
+		
+		tbSearchField.textProperty().addListener((observable, oldValue, newValue) -> {
+	        filteredUsers.setPredicate(book -> {
+	            // Ako je polje za pretragu prazno, prikazuju se svi korisnici
+	            if (newValue == null || newValue.isEmpty()) {
+	                return true;
+	            }
+
+	            // Filtriranje na osnovu korisničkog imena (ili drugih atributa)
+	            String lowerCaseFilter = newValue.toLowerCase();
+	            return book.getBookTitle().toLowerCase().contains(lowerCaseFilter) 
+	            	   || book.getBookAuthor().toLowerCase().contains(lowerCaseFilter);
+	        });
+	    });
+		
+		
+		 tvBookTable.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Book>) change -> {
+		        while (change.next()) {
+		            // Obeleži selektovane redove
+		            if (change.wasAdded()) {
+		                for (Book book : change.getAddedSubList()) {
+		                    book.setSelected(true);
+		                }
+		            }
+		            // Poništi selekciju redova koji više nisu selektovani
+		            if (change.wasRemoved()) {
+		                for (Book book : change.getRemoved()) {
+		                    book.setSelected(false);
+		                }
+		            }
+		        }
+		        tvBookTable.refresh(); // Osveži prikaz nakon promene
+		    });
+		
+		});
+		
+		
+		tvBookTable.getSelectionModel().setSelectionMode(
+				SelectionMode.MULTIPLE
+		);
+		
+	}
+    
+    private void showBooks() {
+    	try {
+			URL url = new URL(PropertiesFileLoader.getInstance().getSpecifiedProperty("books_url"));
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setRequestProperty("Content-Type", "application/json");
+			conn.setRequestMethod("GET");
+			
+			if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				try(BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))){
+					StringBuilder builder = new StringBuilder();
+					String responseLine;
+					
+					while((responseLine = br.readLine()) != null) {
+						builder.append(responseLine.trim());
+					}
+					
+					ObjectMapper mapper = new ObjectMapper();
+					ArrayList<Book> books =  mapper.readValue(builder.toString(), new TypeReference<ArrayList<Book>>() {});
+					
+					listOfBooks = FXCollections.observableArrayList(books);
+					tvBookTable.setItems(listOfBooks);
+					
+				}
+			}else if(conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT){
+				new JOptionPane().showMessageDialog(null, conn.getResponseCode());
+			}else {
+				new JOptionPane().showMessageDialog(null, conn.getResponseCode());
+			}
+			
+			
+		} catch (Exception e) {
+			UserLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+    }
+    
+    
+    private void showBookDetails(Book book) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(INSTANCE.getSpecifiedProperty("book_details_fxml")));
+			Scene scene = new Scene(loader.load());
+			
+			Stage primaryStage = new Stage();
+			primaryStage.setTitle("Book details");
+			primaryStage.setScene(scene);
+			primaryStage.initModality(Modality.APPLICATION_MODAL);
+			primaryStage.initOwner((Stage)tvBookTable.getScene().getWindow());
+			
+			primaryStage.setUserData(book);
+			
+			primaryStage.showAndWait();
+		}catch (Exception ex) {
+			// TODO: handle exception
+		}
+		
+	}
+	
+    
+    @FXML
+    void showBooks(ActionEvent event) {
+    	try {
+			URL url = new URL(INSTANCE.getSpecifiedProperty("books_url"));
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			
+			conn.setDoOutput(true);
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Content-Type", "application/json");
+			
+			if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				try(BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))){
+					StringBuilder builder = new StringBuilder();
+					String responseLine;
+					
+					while((responseLine = br.readLine()) != null) {
+						builder.append(responseLine.trim());
+					}
+					
+					ObjectMapper mapper = new ObjectMapper();
+					books = mapper.readValue(builder.toString(), new TypeReference<ArrayList<Book>>() {});
+					
+//				
+					
+					listOfBooks = FXCollections.observableArrayList(books);
+					//tvBookTable.setItems(listOfBooks);
+					filteredUsers = new FilteredList<>(listOfBooks, p -> true) ;
+					tvBookTable.setItems(filteredUsers);
+				}
+			}else if(conn.getResponseCode() == HttpURLConnection.HTTP_NO_CONTENT) {
+				System.out.println("NO CONTENT");
+			}else {
+				System.out.println("SERVER ERROR");
+			}
+			
+			
+		} catch (Exception e) {
+			UserLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+		 
+    }
+
+    @FXML
+    void downloadBooks(ActionEvent event) {
+    	
+    	booksForDownload = tvBookTable.getItems().stream()
+    										 .filter(b -> b.getSelected())
+    										 .collect(Collectors.toCollection(ArrayList::new));
+    		
+    	
+    	if(!booksForDownload.isEmpty()) {
+    		String userMail = currentUser.getEmail();
+    		new Thread(() -> {
+    			try {
+    				URL url = new URL(INSTANCE.getSpecifiedProperty("mail_url") + userMail);
+    				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    				
+    				conn.setDoOutput(true);
+    				conn.setRequestMethod("POST");
+    				conn.setRequestProperty("Content-Type", "application/json");
+    				
+    				Gson gson = new Gson();
+
+    				try(OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8)){
+    					out.write(gson.toJson(booksForDownload));
+    					out.flush();
+    					
+    					
+    					if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+    						new JOptionPane().showMessageDialog(null, "Endpoint radi");
+    					}else {
+    						new JOptionPane().showMessageDialog(null, "Endpoint ne radi");
+    					}
+    				}
+    				
+    				
+				} catch (Exception e) {
+					UserLogger.LOGGER.log(Level.SEVERE, "", e);
+				}
+    			
+    		}).start();
+    		
+    	}
+    	
+    }
+    
+    
+    @FXML
+    void createOrder(ActionEvent event) {
+    	try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(INSTANCE.getSpecifiedProperty("suggestions_fxml")));
+			Scene scene = new Scene(loader.load());
+			
+			SuggestionsController controller = loader.getController();
+			controller.setCurrentUser(currentUser);
+			
+			Stage stage = new Stage();
+			stage.setTitle("");
+			stage.setResizable(false);
+			stage.setScene(scene);
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.show();
+			
+			
+		} catch (Exception e) {
+			UserLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+    }
+
+//	public ObservableList<String> getMessages() {
+//		return messages;
+//	}
+//
+//	public void setMessages(ObservableList<String> messages) {
+//		this.messages = messages;
+//	}
+    
+    
+
+    @FXML
+    void openChatDIalog(ActionEvent event) {
+    	try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(INSTANCE.getSpecifiedProperty("chat_dialog_fxml")));
+			Scene scene = new Scene(loader.load());
+			
+			ChatController controller = loader.getController();
+			controller.setCurrentUser(currentUser.getUsername());
+			
+			Stage stage = new Stage();
+			stage.setTitle("");
+			stage.setResizable(false);
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.setScene(scene);
+			//stage.setUserData(currentUser);
+			stage.showAndWait();
+			
+			
+		} catch (Exception e) {
+			UserLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+    }
+    
+    public void setLabelUsername(String username) {
+    	lbUsername.setText(username);
+
+    }
+    
+}

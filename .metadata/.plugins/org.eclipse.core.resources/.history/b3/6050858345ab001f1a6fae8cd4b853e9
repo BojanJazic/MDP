@@ -1,0 +1,44 @@
+package net.etfbl.org.chat;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.logging.Level;
+
+import javax.net.ssl.SSLSocket;
+
+import net.etfbl.org.userLogger.UserLogger;
+
+public class ChatServerThread extends Thread {
+	
+	private static Object LOCK = new Object();
+	
+	ObjectOutputStream output;
+	ObjectInputStream input;
+	ArrayList<String> messages = new ArrayList<String>();
+	SSLSocket socket;
+	
+	
+	public ChatServerThread(SSLSocket sock, ArrayList<String> messages) {
+		this.socket = sock;
+		this.messages = messages;
+		try {
+			this.output = new ObjectOutputStream(socket.getOutputStream());
+			this.input = new ObjectInputStream(socket.getInputStream());
+		}catch(IOException e) {
+			UserLogger.LOGGER.log(Level.SEVERE, "", e);
+		}
+	}
+	
+	
+	@Override
+	public void run() {
+		try {
+			String request = (String)input.readObject();
+		}catch(Exception e) {
+			
+		}
+	}
+
+}

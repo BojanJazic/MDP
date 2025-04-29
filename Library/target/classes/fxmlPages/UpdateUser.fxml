@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="581.0" prefWidth="518.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.etfbl.org.libraryControllers.UpdateUserController">
+   <children>
+      <Label prefHeight="30.0" prefWidth="130.0" text="Name:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" top="20.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbName" alignment="CENTER" editable="false" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Label prefHeight="30.0" prefWidth="130.0" text="Surname:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbSurname" alignment="CENTER" editable="false" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Label prefHeight="30.0" prefWidth="130.0" text="Address:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbAddress" alignment="CENTER" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Label prefHeight="30.0" prefWidth="130.0" text="Email:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbEmail" alignment="CENTER" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Label prefHeight="30.0" prefWidth="130.0" text="Username:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbUsername" alignment="CENTER" editable="false" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Label fx:id="tb" prefHeight="30.0" prefWidth="130.0" text="Active status:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbActiveStatus" alignment="CENTER" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Label fx:id="tb1" prefHeight="30.0" prefWidth="130.0" text="Account blocked:">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" />
+         </VBox.margin>
+      </Label>
+      <TextField fx:id="tbAccountBlocked" alignment="CENTER" prefHeight="30.0" prefWidth="200.0">
+         <font>
+            <Font size="16.0" />
+         </font>
+         <VBox.margin>
+            <Insets left="80.0" right="80.0" />
+         </VBox.margin>
+      </TextField>
+      <Button fx:id="btnUpdateData" mnemonicParsing="false" onAction="#updateData" prefHeight="35.0" prefWidth="120.0" text="Update">
+         <VBox.margin>
+            <Insets left="200.0" top="50.0" />
+         </VBox.margin>
+         <font>
+            <Font size="16.0" />
+         </font>
+      </Button>
+   </children>
+</VBox>

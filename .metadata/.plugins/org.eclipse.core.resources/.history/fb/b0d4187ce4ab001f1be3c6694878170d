@@ -1,0 +1,22 @@
+package net.etfbl.org.libraryControllers;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+
+public class QuantityController {
+	
+
+    @FXML
+    private Button btnAddItem;
+
+    @FXML
+    private TextField tbInput;
+
+    @FXML
+    void addItemToList(ActionEvent event) {
+
+    }
+	
+}	

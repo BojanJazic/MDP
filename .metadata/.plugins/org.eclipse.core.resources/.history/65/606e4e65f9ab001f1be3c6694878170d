@@ -1,0 +1,431 @@
+package net.etfbl.org.supplierServer;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.logging.Level;
+
+import javax.swing.JOptionPane;
+
+import org.apache.commons.io.IOUtils;
+
+import com.google.gson.Gson;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
+
+import net.etfbl.org.model.Book;
+import net.etfbl.org.order.Order;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.supplierControllers.SupplierMainWindowController;
+import net.etfbl.org.supplierLogger.SupplierLogger;
+
+public class SupplierServerThread extends Thread {
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+
+	private static String fileSeparator = "/";
+	
+	private static ArrayList<Order> orders = new ArrayList<Order>();
+	
+	private static HashMap<String, ArrayList<Order>> suppliersMap = new HashMap<String, ArrayList<Order>>();
+
+	private Socket socket;
+	private ObjectOutputStream output;
+	private ObjectInputStream input;
+	private ArrayList<Book> books;
+	
+	private String supplierName;
+
+	public SupplierServerThread(Socket socket) {
+		this.socket = socket;
+		books = new ArrayList<Book>();
+
+		try {
+			this.output = new ObjectOutputStream(socket.getOutputStream());
+			this.input = new ObjectInputStream(socket.getInputStream());
+		} catch (IOException e) {
+			SupplierLogger.LOGGER.log(Level.SEVERE,
+					"An error occurred while instantiating the input and output streams.", e);
+		}
+	}
+
+	@Override
+	public void run() {
+
+		try {
+			String request = (String) input.readObject();
+			
+			if (request.startsWith("LOAD_ALL_BOOKS#")) {
+				String supplierName = request.split("#")[1];
+				
+				String directoryName = INSTANCE.getSpeciefiedProperty("suppliers_directory");
+				// System.out.println("LOAD_ALL_BOOKS: supplier = " + supplierName);
+				File supplierDirectory = new File(directoryName + fileSeparator + supplierName);
+				File json = new File(supplierDirectory, "books.json");
+				
+				if (!supplierDirectory.exists()) {
+					supplierDirectory.mkdirs(); // Kreiraj sve direktorijume ako ne postoje
+					
+					//nakon sto je direktorijum kreiran, bice kreiran i novi json fajl koji je prazan
+					Gson gson = new Gson();
+
+					json.createNewFile();
+
+					// Kreiraj praznu listu
+					ArrayList<Book> temp = new ArrayList<>();
+
+					// Upiši praznu listu u JSON fajl
+					try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(json)), true)) {
+						pw.println(gson.toJson(temp)); // upisuje `[]` u fajl
+					} catch (IOException e) {
+						SupplierLogger.LOGGER.severe("ERROR: " + e);
+					}
+					
+					//potrebno pozvati metodu koja preuzima knjige sa linkova
+					ArrayList<Book> books = downloadBooks();
+					//sacuvaj knjige u json fajl
+					saveBooksToJson(books, json);
+					//posalji knjige preko mreze
+					output.writeObject(books);
+					output.flush();
+				}else {
+					//direktorijum i json fajl postoje pa ce se onda pozvati metoda za ucitavanje knjiga iz json fajla
+					ArrayList<Book> books = loadBooksFromJson(json);
+					output.writeObject(books);
+					output.flush();
+				}		
+			}
+
+			else if (request.startsWith("ADD_NEW_BOOK")) {
+				try {
+					String[] temp = request.split("#");
+					Book newBook = downloadNewBook(temp[2]);
+
+					String directoryName = INSTANCE.getSpeciefiedProperty("suppliers_directory");
+					File supplierDirectory = new File(directoryName + fileSeparator + temp[1]);
+					File json = new File(supplierDirectory, "books.json");
+
+					if (!supplierDirectory.exists()) {
+						supplierDirectory.mkdirs(); // Kreiraj sve direktorijume ako ne postoje
+					}
+
+					books = loadBooksFromJson(json);
+					books.add(newBook);
+
+					// Pokušaj da sačuvaš listu knjiga u JSON fajl
+					boolean result = saveBooksToJson(books, json); // Ovde je metoda koja snima listu knjiga u JSON
+
+					if (result) {
+						output.writeObject("OK");
+						output.flush();
+					} else {
+						output.writeObject("NOK");
+						output.flush();
+					}
+				} catch (IOException e) {
+					e.printStackTrace(); // Ispiši grešku u konzoli za dijagnostiku
+					output.writeObject("NOK");
+					output.flush();
+				}
+			}
+
+			// Ovdje je potrebno uraditi dodatne korekcije
+			else if (request.startsWith("BOOKS_BY_SUPPLIER")) {
+				System.out.println("STIGAO ZAHTJEV ZA KNJIGE");
+				String supplier = request.split("#")[1];
+				setSupplier(supplier);
+
+				String directoryName = INSTANCE.getSpeciefiedProperty("suppliers_directory");
+				File supplierDirectory = new File(directoryName + fileSeparator + supplierName);
+				File json = new File(supplierDirectory, "books.json");
+
+				ArrayList<Book> books = loadBooksFromJson(json);
+
+				if (books.isEmpty()) {
+					new JOptionPane().showMessageDialog(null, "Nema knjiga");
+					output.writeObject("There are no books for the requested supplier!");
+				}else {
+					output.writeObject(books);
+					output.flush();
+				}
+
+				
+
+			}
+			
+			//ovdje dolazi do not responding - razlog zato sto je supplierName == null
+			else if(request.startsWith("DELETE#")) {
+				//System.out.println("Zahtjev za brisanje stigao" + supplierName);
+				String supplierName = request.split("#")[1];
+
+				String directoryName = INSTANCE.getSpeciefiedProperty("suppliers_directory");
+				File supplierDirectory = new File(directoryName + fileSeparator + supplierName);
+				File json = new File(supplierDirectory, "books.json");
+			//	System.out.println("Supplier = " + supplierName);
+				int bookId = Integer.parseInt(request.split("#")[2]);
+				
+				
+				ArrayList<Book> books = loadBooksFromJson(json);
+				
+				//books.stream().forEach(System.out::println);
+				
+				
+				
+				  Optional<Book> bookToDelete = books.stream().filter(b -> b.getId() == bookId)
+				  .findFirst();
+				  
+				  if(bookToDelete.isPresent()) {
+					  //System.out.println(bookToDelete.get().getBookTitle());
+				  
+					  int bookIndex = books.indexOf(bookToDelete.get()); 
+					  books.remove(bookIndex);
+					  saveBooksToJson(books, json); 
+					  output.writeObject("OK"); 
+				  	  output.flush();
+				  
+				  } else { 
+					  output.writeObject("NOK"); 
+					  output.flush(); 
+				  }
+				  
+				  //dodato iz razloga sto nije htjelo slati odgovor bez ovoga
+				  output.flush();
+			}else if(request.startsWith("GET_SUPPLIERS")) {
+				File supplierDirectory = new File(INSTANCE.getSpeciefiedProperty("suppliers_directory"));
+				ArrayList<String> suppliersList = new ArrayList<String>();
+				
+				/*
+				 * Metoda Objects.requireNonNull se koristi da bi se izbegla greška ako je
+				 * listFiles() vratio null, na primer, u slučaju da direktorijum ne postoji ili
+				 * nije moguće pristupiti njegovom sadržaju.
+				 */
+				
+				for(File file : Objects.requireNonNull(supplierDirectory.listFiles())) {
+					suppliersList.add(file.getName());
+				}
+				output.writeObject(suppliersList);
+				output.flush();
+			} else if(request.startsWith("ADD_NEW_ORDER")) {
+				
+				//OVDJE SI STAO KOD DODAVANJA U MAPU
+				
+				for(Map.Entry<String, ArrayList<Book>> entry : suppliersMap.entrySet()) {
+					
+				}
+				
+				String supplier = request.split("#")[1];
+				Order order = (Order)input.readObject();
+				orders.add(order);
+			} else if(request.startsWith("GET_ORDERS")) {
+				//da li ce se znati za kojeg dobavljaca treba ocitati???
+			}
+
+
+		} catch (Exception e) {
+			
+			SupplierLogger.LOGGER.log(Level.SEVERE, "Ovdje se desila greska", e);
+		}
+
+	}
+
+	// ----------------------------------------------------------------------------------------
+	private ArrayList<Book> loadBooksFromJson(File json) throws IOException {
+		Gson gson = new Gson();
+
+		// Proveri da li fajl već postoji
+		if (!json.exists()) {
+			// Ako fajl ne postoji, kreira prazan JSON fajl
+			json.createNewFile();
+
+			// Kreiraj praznu listu
+			ArrayList<Book> temp = new ArrayList<>();
+
+			// Upiši praznu listu u JSON fajl
+			try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(json)), true)) {
+				pw.println(gson.toJson(temp)); // upisuje `[]` u fajl
+			} catch (IOException e) {
+				SupplierLogger.LOGGER.severe("ERROR: " + e);
+			}
+
+			// Vrati praznu listu jer nema podataka
+			return temp;
+		}
+
+		// Ako fajl postoji, koristi Gson za čitanje liste knjiga
+		Type bookListType = new TypeToken<ArrayList<Book>>() {}.getType();
+		FileReader reader = new FileReader(json);
+		ArrayList<Book> books = gson.fromJson(reader, bookListType);
+		reader.close();
+
+		// Vrati učitanu listu knjiga
+		return books;
+	}
+
+	// --------------------------------------------------------------------------------------------------
+
+	// OVDJE MOZDA PREBACITI DA SE VRACA KNJIGA PO KNJIGA
+	private ArrayList<Book> downloadBooks() {
+		System.out.println("Preuzimanje knjiga");
+		try {
+			Path filePath = Paths.get("src/main/resources" + INSTANCE.getSpeciefiedProperty("books_links"));
+			List<String> links = Files.readAllLines(filePath);
+
+			// System.out.println(links.size());
+			links.stream().forEach(System.out::println);
+			ArrayList<Book> tempBooks = new ArrayList<Book>();
+
+			for (String link : links) {
+				Book b = downloadNewBook(link);
+				tempBooks.add(b);
+			}
+
+			return tempBooks;
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+
+			// PREGLEDAJ JOS OVAJ DIO DA LI TREBA DA IDE NULL ILI PRAZNA LISTA
+			return null;
+		}
+
+	}
+
+	private Book downloadNewBook(String link) {
+		try {
+			int id = 0;
+			String bookTitle = "", bookAuthor = "", releaseDate = "", language = "", coverPage = "", bookContent = "";
+
+			String bookName = link.substring(link.lastIndexOf("/") + 1);
+
+			String numberPart = bookName.replaceAll("\\D+", "");
+			id = Integer.parseInt(numberPart);
+			System.out.println("ID knjige " + id);
+			String coverPagePath = link.substring(0, link.length() - 3)
+					+ INSTANCE.getSpeciefiedProperty("cover_page_extension");
+			coverPage = getBase64(coverPagePath);
+
+			try (BufferedReader br = getBookFromURL(link)) {
+
+				String record;
+
+				while ((record = br.readLine()) != null) {
+					bookContent += record + "\n";
+
+					if (record.startsWith("Title: ")) {
+						bookTitle = record.substring(record.indexOf(" ") + 1).trim();
+					} else if (record.startsWith("Author: ")) {
+						bookAuthor = record.substring(record.indexOf(" ") + 1).trim();
+					} else if (record.startsWith("Release date: ")) {
+						int startIndex = record.indexOf(" ") + 1;
+						int endIndex = record.indexOf(" [");
+						if (endIndex == -1) {
+							endIndex = record.length();
+						}
+
+						releaseDate = record.substring(startIndex + 6, endIndex).trim();
+
+					} else if (record.startsWith("Language: ")) {
+						language = record.substring(record.indexOf(" ") + 1).trim();
+					}
+
+				}
+
+			}
+
+			return new Book(id, bookTitle, bookAuthor, releaseDate, language, coverPage, bookContent);
+
+		} catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "An error occured in method downloadNewBook(String link).", e);
+		}
+
+		return null;
+	}
+
+	private static BufferedReader getBookFromURL(String bookURL) {
+		URL book;
+		BufferedReader content = null;
+		try {
+			book = new URL(bookURL);
+			content = new BufferedReader(new InputStreamReader(book.openStream()));
+		} catch (IOException e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "An error occured in method getBookFromURL.", e);
+		}
+
+		return content;
+	}
+
+	public static String getBase64(String coverUrl) {
+		try (InputStream is = new URL(coverUrl).openStream()) {
+
+			byte[] imageBytes = IOUtils.toByteArray(is);
+
+			return Base64.getEncoder().encodeToString(imageBytes);
+		} catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "", e);
+			return null;
+		}
+	}
+
+	private static boolean saveBooksToJson(ArrayList<Book> books, File json) {
+
+		try {
+			Gson gson = new Gson();
+
+			if (!json.exists()) {
+				json.createNewFile();
+
+				// Kreiraj praznu listu
+				ArrayList<Book> temp = new ArrayList<>();
+
+				// Upiši praznu listu u JSON fajl
+				try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(json)), true)) {
+					pw.println(gson.toJson(temp)); // upisuje `[]` u fajl
+				} catch (IOException e) {
+					SupplierLogger.LOGGER.severe("ERROR: " + e);
+				}
+			}
+
+			try (PrintWriter pw = new PrintWriter(new FileWriter(json))) {
+				pw.println(gson.toJson(books));
+			}
+
+			return true;
+
+		} catch (IOException e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "Ili se ovdje desila", e);
+			return false;
+		}
+	}
+	
+	public void setSupplier(String name) {
+		this.supplierName = name;
+	}
+	
+}

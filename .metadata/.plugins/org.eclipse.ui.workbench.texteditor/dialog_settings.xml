@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="hasShownOverlayPopupBefore" value="true"/>
+	<item key="replaceBarOpen" value="true"/>
+	<list key="replacehistory">
+		<item value="INSTANCE"/>
+		<item value="releaseDate"/>
+	</list>
+	<list key="searchhistory">
+		<item value="System.out"/>
+		<item value="21255"/>
+		<item value="PropertiesFileLoader.getInstance()"/>
+		<item value="74683"/>
+		<item value="Presidential"/>
+		<item value="Landesverein"/>
+		<item value="publicationYear"/>
+	</list>
+	<section name="org.eclipse.ui.texteditor.GotoLineAction$GotoLineDialog_dialogBounds">
+		<item key="DIALOG_X_ORIGIN" value="564"/>
+		<item key="DIALOG_Y_ORIGIN" value="306"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item key="selection" value=""/>
+		<list key="findhistory">
+			<item value=""/>
+		</list>
+	</section>
+</section>

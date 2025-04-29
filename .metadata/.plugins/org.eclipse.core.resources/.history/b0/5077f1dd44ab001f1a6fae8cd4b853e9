@@ -1,0 +1,21 @@
+package net.etfbl.org.chat;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
+import javax.net.ssl.SSLSocket;
+
+public class ChatServerThread extends Thread {
+	
+	private static Object LOCK = new Object();
+	
+	ObjectOutputStream output;
+	ObjectInputStream input;
+	
+	
+	public ChatServerThread(SSLSocket sock, ArrayList<String> messages) {
+		
+	}
+
+}

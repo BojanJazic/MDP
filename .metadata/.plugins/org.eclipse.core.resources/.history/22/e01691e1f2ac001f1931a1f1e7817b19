@@ -1,0 +1,61 @@
+package net.etfbl.org.supplierControllers;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.logging.Level;
+
+import javax.swing.JOptionPane;
+
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
+import net.etfbl.org.model.Book;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+import net.etfbl.org.supplierLogger.SupplierLogger;
+
+public class AddNewBookController {
+	
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	
+	
+	@FXML
+	private Button btnAddNewBook;
+
+	@FXML
+	private TextField tfLinkToTheBook;
+
+	@FXML
+	void addNewBook(ActionEvent event) {
+		String bookLink = tfLinkToTheBook.getText().trim();
+		try {
+			InetAddress addr = InetAddress.getByName(INSTANCE.getSpeciefiedProperty("server_address"));
+			int port = Integer.parseInt(INSTANCE.getSpeciefiedProperty("server_port"));
+
+			try (Socket sock = new Socket(addr, port)) {
+				ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+				ObjectInputStream ois = new ObjectInputStream(sock.getInputStream());
+
+				oos.writeObject("ADD_NEW_BOOK#" + SupplierMainWindowController.getSupplier() + "#" + bookLink);
+				
+				String response = (String)ois.readObject();
+				new JOptionPane().showMessageDialog(null, response);
+				
+				Stage stage = (Stage) btnAddNewBook.getScene().getWindow();
+				stage.close();
+
+				
+			}
+		}catch (Exception e) {
+			// TODO: handle exception
+			SupplierLogger.LOGGER.log(Level.SEVERE, "An error occured in the addNewBook method in the AddNewBookController class.", e);
+		}
+    }
+	
+
+}

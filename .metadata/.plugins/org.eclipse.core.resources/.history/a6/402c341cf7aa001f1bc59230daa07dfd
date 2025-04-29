@@ -1,0 +1,56 @@
+package net.etfbl.org.multicast;
+
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+
+import javafx.collections.ObservableList;
+import net.etfbl.org.propertiesLoader.PropertiesFileLoader;
+
+public class MulticastClient extends Thread {
+
+	private static PropertiesFileLoader INSTANCE = PropertiesFileLoader.getInstance();
+	private static final int PORT = Integer.parseInt(INSTANCE.getSpecifiedProperty("multicast_port"));
+	private static final String HOST = INSTANCE.getSpecifiedProperty("multicast_host");
+	
+	
+	private ObservableList<String> messages;
+	
+	private InetAddress address = null;
+	private MulticastSocket socket = null;
+	
+	public MulticastClient(ObservableList<String> messages) {
+		this.messages = messages;
+		setDaemon(true);
+	}
+	
+	
+	//klijentska strana mora biti thread, jer mora biti u stanju da prima poruke dok god je aktivna aplikacija
+	
+	@Override
+	public void run() {
+		byte[] buffer = new byte[1024];
+		
+		try {
+			socket = new MulticastSocket(PORT);
+			address = InetAddress.getByName(HOST);
+			
+			socket.joinGroup(address);
+			
+			while(true) {
+				DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+				socket.receive(dp);
+				
+				String recieved = new String(dp.getData(), 0, dp.getLength());
+				
+			}
+			
+		}catch(Exception e) {
+			
+		}finally {
+			socket.leaveGroup();
+		}
+	}
+	
+	
+}
